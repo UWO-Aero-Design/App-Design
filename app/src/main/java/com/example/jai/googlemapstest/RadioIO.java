@@ -5,6 +5,11 @@
 
 package com.example.jai.googlemapstest;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
+import android.hardware.usb.UsbManager;
 import android.util.Log;
 
 import com.ftdi.j2xx.D2xxManager;
@@ -19,9 +24,54 @@ public class RadioIO implements Runnable {
     private D2xxManager ftD2xx = null;
     private TelemetryNew telemetry;
 
+    protected BroadcastReceiver mUsbReceiver;
+    protected IntentFilter filter;
+
+    Context global_context;
+
     public static final int READBUF_SIZE  = 256;
     private byte[] buffer  = new byte[READBUF_SIZE];
+    public boolean mThreadIsStopped = true;
     int readSize;
+
+
+    public final byte XON = 0x11;    /* Resume transmission */
+    public final byte XOFF = 0x13;    /* Pause transmission */
+
+    private final int BAUD = 57600;
+
+
+
+
+    public RadioIO (Context context) {
+
+        this.global_context = context;
+
+        mUsbReceiver = new BroadcastReceiver() {
+            public void onReceive(Context context, Intent intent) {
+                String action = intent.getAction();
+                if (UsbManager.ACTION_USB_DEVICE_ATTACHED.equals(action)) {
+                    // never come here(when attached, go to onNewIntent)
+                    openDevice();
+                } else if (UsbManager.ACTION_USB_DEVICE_DETACHED.equals(action)) {
+                    closeDevice();
+                }
+            }
+        };
+
+        // Initialize USB socket
+        try {
+            ftD2xx = D2xxManager.getInstance(global_context);
+        }
+        catch (D2xxManager.D2xxException e) {
+            Log.e("FTDI_HT", "getInstance fail!!");
+        }
+        filter = new IntentFilter();
+        filter.addAction(UsbManager.ACTION_USB_DEVICE_ATTACHED);
+        filter.addAction(UsbManager.ACTION_USB_DEVICE_DETACHED);
+
+        global_context.registerReceiver(mUsbReceiver, filter);
+    }
 
     @Override
     public void run() {
@@ -30,7 +80,6 @@ public class RadioIO implements Runnable {
             // If there's data, read into local buffer
             readSize = ftDev.getQueueStatus();
             ftDev.read(buffer, readSize);
-            //byte[] buffer = {'H', 'e', 'l', 'l', 'o'};
             byteArrayToTelemetry(buffer, telemetry);
 
             // Read newest data into telemetry object
@@ -46,7 +95,19 @@ public class RadioIO implements Runnable {
     public TelemetryNew getTelemetry() {
         return telemetry;
     }
+    @Override
+    protected void onNewIntent(Intent intent) {
+        openDevice();
+    }
 
+
+    void setConfig() {
+        ftDev.setBitMode((byte) 0, D2xxManager.FT_BITMODE_RESET); // reset to UART mode for 232 devices
+        ftDev.setBaudRate(BAUD);
+        ftDev.setDataCharacteristics(D2xxManager.FT_DATA_BITS_8, D2xxManager.FT_STOP_BITS_1,
+                D2xxManager.FT_PARITY_NONE);
+        ftDev.setFlowControl(D2xxManager.FT_FLOW_RTS_CTS, XON, XOFF);
+    }
     protected void openDevice() {
         if(ftDev != null) {
             if(ftDev.isOpen()) {
@@ -85,9 +146,17 @@ public class RadioIO implements Runnable {
                 setConfig();
                 ftDev.purge((byte) (D2xxManager.FT_PURGE_TX | D2xxManager.FT_PURGE_RX));
                 ftDev.restartInTask();
-                new Thread(mLoop).start();
+                //new Thread(mLoop).start();
             }
         }
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        Log.v(TAG, "Telemetry Destroyed!");
+        mThreadIsStopped = true;
+        global_context.unregisterReceiver(mUsbReceiver);
     }
 
     public void closeDevice() {

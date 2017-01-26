@@ -1,5 +1,7 @@
 package com.example.jai.googlemapstest;
 
+import android.content.Context;
+
 /**
  * Created by marko on 2017-01-15.
  */
@@ -17,7 +19,10 @@ public class TelemetryNew {
     public boolean payload;
     public boolean dropLoadToggle;
 
-    public TelemetryNew() {
+    Context global_context;
+
+
+    public TelemetryNew(Context context) {
         data[TelemetryNew.LONGITUDE] = 0;
         data[TelemetryNew.LATITUDE] = 0;
         data[TelemetryNew.ALTITUDE] = 0;
@@ -26,5 +31,9 @@ public class TelemetryNew {
         data[TelemetryNew.YAW] = 0;
         data[TelemetryNew.PITCH] = 0;
         data[TelemetryNew.ROLL] = 0;
+
+        this.global_context = context;
+        this.payload = true;
+        this.dropLoadToggle = false;
     }
 }

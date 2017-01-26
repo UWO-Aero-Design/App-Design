@@ -29,11 +29,11 @@ public class Telemetry extends FragmentActivity {
     public static D2xxManager ftD2xx = null;
 
     // Buffer Read
-    //public int READ_BUFFER_SIZE = 56;
+    public int READ_BUFFER_SIZE = 56;
     public int port = 0;
     public byte[] USBBuffer;
-    public final byte XON = 0x11;    /* Resume transmission */
-    public final byte XOFF = 0x13;    /* Pause transmission */
+/*    public final byte XON = 0x11;    *//* Resume transmission *//*
+    public final byte XOFF = 0x13;    *//* Pause transmission */
     public static final int READBUF_SIZE  = 256;
     public int mReadSize = 0;
     public boolean mThreadIsStopped = true;
@@ -44,7 +44,7 @@ public class Telemetry extends FragmentActivity {
     protected double heightoffset = 0;
 
     // Serial communication (usb radio)
-    private final int BAUD = 57600;
+   /* private final int BAUD = 57600;*/
     private final byte[] drop = {(byte) '0'};
     private final byte[] load = {(byte) '1'};
     private final byte[] request = {(byte) 'r'};
@@ -77,7 +77,8 @@ public class Telemetry extends FragmentActivity {
     long startTime, currentTime;
 
     public Telemetry(Context context) {
-        this.planeLong = 0;
+
+       /* this.planeLong = 0;
         this.planeLat = 0;
         this.planeAlt = 0;
         this.planeSpeed = 0;
@@ -87,12 +88,13 @@ public class Telemetry extends FragmentActivity {
         this.planeRoll = 0;
         this.payload = true;
         this.dropLoadToggle = false;
-        this.global_context = context;
-        this.firstline = true;
-        startTime = System.currentTimeMillis();
-        currentTime = 0;
+        this.global_context = context;*/
 
-        mUsbReceiver = new BroadcastReceiver() {
+        //this.firstline = true;
+        //startTime = System.currentTimeMillis();
+        //currentTime = 0;
+
+/*        mUsbReceiver = new BroadcastReceiver() {
             public void onReceive(Context context, Intent intent) {
                 String action = intent.getAction();
                 if (UsbManager.ACTION_USB_DEVICE_ATTACHED.equals(action)) {
@@ -102,63 +104,63 @@ public class Telemetry extends FragmentActivity {
                     closeDevice();
                 }
             }
-        };
+        };*/
 
-        Log.v(TAG, global_context.toString());
+//        Log.v(TAG, global_context.toString());
 
         // Initialize USB socket
-        try {
+    /*    try {
             ftD2xx = D2xxManager.getInstance(global_context);
         }
         catch (D2xxManager.D2xxException e) {
             Log.e("FTDI_HT", "getInstance fail!!");
         }
-
+*/
         // Establish USB buffer
-        USBBuffer = new byte[READ_BUFFER_SIZE];
+        //USBBuffer = new byte[READ_BUFFER_SIZE];
 
         // Stuff for the USB socket
-        filter = new IntentFilter();
+      /*  filter = new IntentFilter();
         filter.addAction(UsbManager.ACTION_USB_DEVICE_ATTACHED);
-        filter.addAction(UsbManager.ACTION_USB_DEVICE_DETACHED);
+        filter.addAction(UsbManager.ACTION_USB_DEVICE_DETACHED);*/
 
-        fileShit();
+//        fileShit();
 
-        global_context.registerReceiver(mUsbReceiver, filter);
-        Log.v("TELE", "Telemetry established" );
+        /*global_context.registerReceiver(mUsbReceiver, filter);*/
+//        Log.v("TELE", "Telemetry established" );
     }
 
-    protected void fileShit() {
-        File fileDir = new File(Environment.getExternalStorageDirectory().getAbsolutePath());
-        File file = new File(Environment.getExternalStorageDirectory().getAbsolutePath()+File.separator+"FileLog.csv");
+//    protected void fileShit() {
+//        File fileDir = new File(Environment.getExternalStorageDirectory().getAbsolutePath());
+//        File file = new File(Environment.getExternalStorageDirectory().getAbsolutePath()+File.separator+"FileLog.csv");
+//
+//        if(!file.exists()){
+//            try {
+//                file.createNewFile();
+//            } catch (IOException e) {
+//                e.printStackTrace();
+//            }
+//        }
+//        if(file.exists()){
+//            try {
+//                FileWriter fileWriter = new FileWriter(file);
+//                bfWriter = new BufferedWriter(fileWriter);
+//            } catch (IOException e) {
+//                e.printStackTrace();
+//            }
+//
+//        }
+//    }
 
-        if(!file.exists()){
-            try {
-                file.createNewFile();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-        if(file.exists()){
-            try {
-                FileWriter fileWriter = new FileWriter(file);
-                bfWriter = new BufferedWriter(fileWriter);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-
-        }
-    }
-
-    @Override
+    /*@Override
     public void onDestroy() {
         super.onDestroy();
         Log.v(TAG, "Telemetry Destroyed!");
         mThreadIsStopped = true;
         global_context.unregisterReceiver(mUsbReceiver);
-    }
+    }*/
 
-    public void closeDevice() {
+  /*  public void closeDevice() {
         mThreadIsStopped = true;
         telemetryOpen = false;
         //updateView(false);
@@ -170,20 +172,20 @@ public class Telemetry extends FragmentActivity {
                 e.printStackTrace();
             }
         }
-    }
+    }*/
 
-    @Override
+   /* @Override
     protected void onNewIntent(Intent intent) {
         openDevice();
-    }
-
+    }*/
+/*
     void setConfig() {
         ftDev.setBitMode((byte) 0, D2xxManager.FT_BITMODE_RESET); // reset to UART mode for 232 devices
         ftDev.setBaudRate(BAUD);
         ftDev.setDataCharacteristics(D2xxManager.FT_DATA_BITS_8, D2xxManager.FT_STOP_BITS_1,
                 D2xxManager.FT_PARITY_NONE);
         ftDev.setFlowControl(D2xxManager.FT_FLOW_RTS_CTS, XON, XOFF);
-    }
+    }*/
 
     protected void openDevice() {
         if(ftDev != null) {
