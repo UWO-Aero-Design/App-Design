@@ -128,9 +128,6 @@ public class Telemetry extends FragmentActivity {
         Log.v("TELE", "Telemetry established" );
     }
 
-    /**
-     * Destroy all humans. Close the activity and the USB socket.
-     */
     protected void fileShit() {
         File fileDir = new File(Environment.getExternalStorageDirectory().getAbsolutePath());
         File file = new File(Environment.getExternalStorageDirectory().getAbsolutePath()+File.separator+"FileLog.csv");
@@ -178,7 +175,7 @@ public class Telemetry extends FragmentActivity {
     @Override
     protected void onNewIntent(Intent intent) {
         openDevice();
-    };
+    }
 
     void setConfig() {
         ftDev.setBitMode((byte) 0, D2xxManager.FT_BITMODE_RESET); // reset to UART mode for 232 devices
@@ -236,18 +233,15 @@ public class Telemetry extends FragmentActivity {
     private Runnable mLoop = new Runnable() {
         @Override
         public void run() {
-
             int i;
             int readSize;
             mThreadIsStopped = false;
 
             while(true) {
-                if(mThreadIsStopped) {
+                if(mThreadIsStopped)
                     break;
-                }
 
                 synchronized (ftDev) {
-
                     // Check drop condition
                     if(dropLoadToggle) {
                         payloadToggle(payload);
@@ -269,10 +263,9 @@ public class Telemetry extends FragmentActivity {
                         closeDevice();
                     }
 
-                    try{
+                    try {
                         Thread.sleep(500);
-                    }catch(Exception e)
-                    {
+                    } catch(Exception e) {
                         Log.e("TEL", "Error trying to sleep");
                     }
 
@@ -283,15 +276,13 @@ public class Telemetry extends FragmentActivity {
                     if(readSize > 40) {
                         mReadSize = readSize;
 
-                        if(mReadSize > READBUF_SIZE) {
+                        if(mReadSize > READBUF_SIZE)
                             mReadSize = READBUF_SIZE;
-                        }
 
                         ftDev.read(rbuf, mReadSize);
 
-                        for(i=0; i<mReadSize; i++) {
+                        for(i=0; i<mReadSize; i++)
                             rchar[i] = (char)rbuf[i];
-                        }
 
                         // Parse incoming string and set telemetry coordinates
                         mHandler.post(new Runnable() {

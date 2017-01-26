@@ -79,8 +79,8 @@
         </activity>
         <activity
             android:name=".FlightPath"
-            android:label="@string/title_activity_flight_path"
-            ></activity>
+            android:label="@string/title_activity_flight_path">
+        </activity>
     </application>
 
 </manifest>
