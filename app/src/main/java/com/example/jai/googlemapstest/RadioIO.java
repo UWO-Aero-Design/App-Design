@@ -19,12 +19,18 @@ public class RadioIO implements Runnable {
     private D2xxManager ftD2xx = null;
     private TelemetryNew telemetry;
 
+    public static final int READBUF_SIZE  = 256;
+    private byte[] buffer  = new byte[READBUF_SIZE];
+    int readSize;
+
     @Override
     public void run() {
         while (ftDev.isOpen()) {
             // Check if buffer has data
             // If there's data, read into local buffer
-            byte[] buffer = {'H', 'e', 'l', 'l', 'o'};
+            readSize = ftDev.getQueueStatus();
+            ftDev.read(buffer, readSize);
+            //byte[] buffer = {'H', 'e', 'l', 'l', 'o'};
             byteArrayToTelemetry(buffer, telemetry);
 
             // Read newest data into telemetry object

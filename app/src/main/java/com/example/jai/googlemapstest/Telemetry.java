@@ -29,7 +29,7 @@ public class Telemetry extends FragmentActivity {
     public static D2xxManager ftD2xx = null;
 
     // Buffer Read
-    public int READ_BUFFER_SIZE = 56;
+    //public int READ_BUFFER_SIZE = 56;
     public int port = 0;
     public byte[] USBBuffer;
     public final byte XON = 0x11;    /* Resume transmission */
@@ -261,7 +261,7 @@ public class Telemetry extends FragmentActivity {
                     } else {
                         //Toast.makeText(global_context, "USB Lost", Toast.LENGTH_SHORT).show();
                         closeDevice();
-                    }
+                }
 
                     try {
                         Thread.sleep(500);
