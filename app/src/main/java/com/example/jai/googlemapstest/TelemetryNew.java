@@ -19,6 +19,8 @@ public class TelemetryNew {
     public boolean payload;
     public boolean dropLoadToggle;
 
+    protected boolean telemetryOpen = false;
+
     Context global_context;
 
 

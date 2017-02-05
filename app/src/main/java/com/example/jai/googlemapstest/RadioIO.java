@@ -10,6 +10,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.hardware.usb.UsbManager;
+import android.support.v4.app.FragmentActivity;
 import android.util.Log;
 
 import com.ftdi.j2xx.D2xxManager;
@@ -19,7 +20,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
-public class RadioIO implements Runnable {
+public class RadioIO extends FragmentActivity implements Runnable{
     private FT_Device ftDev;
     private D2xxManager ftD2xx = null;
     private TelemetryNew telemetry;
@@ -31,7 +32,7 @@ public class RadioIO implements Runnable {
 
     public static final int READBUF_SIZE  = 256;
     private byte[] buffer  = new byte[READBUF_SIZE];
-    public boolean mThreadIsStopped = true;
+    //  public boolean mThreadIsStopped = true;     implemented in runnable, therefore not needed
     int readSize;
 
 
@@ -95,6 +96,7 @@ public class RadioIO implements Runnable {
     public TelemetryNew getTelemetry() {
         return telemetry;
     }
+
     @Override
     protected void onNewIntent(Intent intent) {
         openDevice();
@@ -111,14 +113,14 @@ public class RadioIO implements Runnable {
     protected void openDevice() {
         if(ftDev != null) {
             if(ftDev.isOpen()) {
-                if(mThreadIsStopped) {
+                // if(mThreadIsStopped) {
                     //updateView(true);
                     setConfig();
                     ftDev.purge((byte) (D2xxManager.FT_PURGE_TX | D2xxManager.FT_PURGE_RX));
                     ftDev.restartInTask();
-                    new Thread(mLoop).start();
+                    //new Thread(mLoop).start();
 
-                }
+                // }
                 return;
             }
         }
@@ -130,38 +132,41 @@ public class RadioIO implements Runnable {
         ftD2xx.getDeviceInfoList(devCount, deviceList);
 
         if(devCount <= 0) {
+            //Error catching
             return;
         }
 
         if(ftDev == null) {
             ftDev = ftD2xx.openByIndex(global_context, 0);
-        } else {
+        }
+
+        else {
             synchronized (ftDev) {
                 ftDev = ftD2xx.openByIndex(global_context, 0);
             }
         }
 
         if(ftDev.isOpen()) {
-            if(mThreadIsStopped) {
+           // if(mThreadIsStopped) {
                 setConfig();
                 ftDev.purge((byte) (D2xxManager.FT_PURGE_TX | D2xxManager.FT_PURGE_RX));
                 ftDev.restartInTask();
                 //new Thread(mLoop).start();
-            }
+            //}
         }
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
-        Log.v(TAG, "Telemetry Destroyed!");
-        mThreadIsStopped = true;
+        //Log.v(TAG, "Telemetry Destroyed!");
+        // mThreadIsStopped = true;
         global_context.unregisterReceiver(mUsbReceiver);
     }
 
     public void closeDevice() {
-        mThreadIsStopped = true;
-        telemetryOpen = false;
+        // mThreadIsStopped = true;
+        telemetryOpen  = false;
         //updateView(false);
         if(ftDev != null) {
             ftDev.close();
@@ -172,3 +177,5 @@ public class RadioIO implements Runnable {
             }
         }
     }
+
+
