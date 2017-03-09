@@ -1,3 +1,4 @@
+/*
 package com.example.jai.googlemapstest;
 
 import android.content.Context;
@@ -88,7 +89,7 @@ public class FlightPath extends AppCompatActivity {
 
         final ArrayList<LatLng> waypoints = intent.getParcelableArrayListExtra("WAYPOINT_ID");
         final ArrayList<Double> heights = (ArrayList<Double>) intent.getSerializableExtra("HEIGHT_ID");
-        final ArrayList<Double> speeds = (ArrayList<Double>) intent.getSerializableExtra("SPEED_ID");
+        //final ArrayList<Double> speeds = (ArrayList<Double>) intent.getSerializableExtra("SPEED_ID");
         final int droppedCount = intent.getIntExtra("DROPPED_COUNT", 0);
 
         final Bitmap wp = BitmapFactory.decodeResource(getResources(), R.drawable.ic_wp);
@@ -98,13 +99,13 @@ public class FlightPath extends AppCompatActivity {
             double waypointlat = waypoints.get(i).latitude;
             double waypointlong = waypoints.get(i).longitude;
             LatLng waypoint = new LatLng(waypointlat, waypointlong);
-            double speed = speeds.get(i);
+            //double speed = speeds.get(i);
             double height = heights.get(i);
             if (i == droppedCount && droppedCount != 0) {
                 point = mMap.addMarker(new MarkerOptions()
                         .position(waypoint)
                         .anchor(0.5f, 0.5f)
-                        .title(Double.toString(height) + " " + Double.toString(speed)));
+                        //.title(Double.toString(height) + " " + Double.toString(speed)));
             }
             point = mMap.addMarker(new MarkerOptions()
                     .position(waypoint)
@@ -120,3 +121,4 @@ public class FlightPath extends AppCompatActivity {
     }
     //////////////////////
 }
+*/

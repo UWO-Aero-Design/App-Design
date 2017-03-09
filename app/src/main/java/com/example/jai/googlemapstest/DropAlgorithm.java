@@ -1,3 +1,4 @@
+/*
 package com.example.jai.googlemapstest;
 
 
@@ -174,3 +175,4 @@ public class DropAlgorithm {
 
 }
 
+*/

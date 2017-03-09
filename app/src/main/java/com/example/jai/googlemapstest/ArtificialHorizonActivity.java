@@ -1,3 +1,4 @@
+/*
 package com.example.jai.googlemapstest;
 
 import android.content.pm.ActivityInfo;
@@ -74,4 +75,4 @@ public class ArtificialHorizonActivity extends AppCompatActivity {
         super.onDestroy();
     }
 
-}
+}*/

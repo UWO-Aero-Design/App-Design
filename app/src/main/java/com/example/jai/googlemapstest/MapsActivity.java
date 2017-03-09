@@ -13,6 +13,7 @@ import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.text.InputType;
@@ -25,7 +26,6 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import android.support.v4.app.FragmentActivity;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.SupportMapFragment;
@@ -34,15 +34,13 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
-import java.text.SimpleDateFormat;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
-import java.util.Date;
 
 
 public class MapsActivity extends AppCompatActivity {
 
-    private Telemetry telemetry;
-    private DropAlgorithm dropAlgorithm;
+    private RadioIO radio1;
 
     private GoogleMap mMap;
     private SQLiteDatabase pointDb;
@@ -64,6 +62,10 @@ public class MapsActivity extends AppCompatActivity {
     protected double plane_rotation = 0.0;
     protected double plane_speed = 0.0;
     protected double plane_height = 0.0;
+    protected double plane_distance = 0.0;
+    protected double plane_Time =  0.0;
+    protected double plane_pitch = 0.0;
+    protected double plane_roll = 0.0;
     protected boolean planeVisible = true;
 
     Handler handler = new Handler();
@@ -102,22 +104,17 @@ public class MapsActivity extends AppCompatActivity {
         setUpMapIfNeeded();
         updateMarkers();
 
-        if(telemetry == null){
-            telemetry = new Telemetry(this);
-        }
-
-        if(dropAlgorithm == null){
-            dropAlgorithm = new DropAlgorithm();
-            dropAlgorithm.setWind(0,0);
-            dropAlgorithm.setDrag(0.06, 0.06, 0.06);
-        }
-
         altitude_filter_size = 20;
         altitude_filter = new double[altitude_filter_size];
         altitude_filter_pos = 0;
         lastTime = System.currentTimeMillis();
 
         global_context = this;
+
+        if(radio1 == null){
+            radio1 = new RadioIO(this);
+
+        }
     }
 
     public void setUpFloatingButton() {
@@ -125,10 +122,10 @@ public class MapsActivity extends AppCompatActivity {
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                //Snackbar.make(view, "Drop/Load Action", Snackbar.LENGTH_LONG)
-                // .setAction("Action", null).show();
+                Snackbar.make(view, "Drop/Load Action", Snackbar.LENGTH_LONG)
+                .setAction("Action", null).show();
 
-                if (payload) {
+              /*  if (payload) {
                     fab.setImageDrawable(getResources().getDrawable(R.drawable.ic_drop_icon, global_context.getTheme()));
                     payload = false;
                     telemetry.dropLoadToggle = true;
@@ -137,7 +134,7 @@ public class MapsActivity extends AppCompatActivity {
                     telemetry.dropLoadToggle = true;
                     dropped = true;
                     payload = true;
-                }
+                }*/
             }
         });
     }
@@ -244,10 +241,12 @@ public class MapsActivity extends AppCompatActivity {
                 startActivityForResult(intent, 1);
                 break;
             case R.id.connect:
-                telemetry.setUpUsbIfNeeded();
+                radio1.setUpUsbIfNeeded();
                 if(!thread.isAlive()) {
                     thread.start();
                 }
+//                Thread thread2 = new Thread(radio1);
+//                thread2.start();
                 if(!planeVisible) {
                     planeVisible = true;
                 } else {
@@ -255,14 +254,14 @@ public class MapsActivity extends AppCompatActivity {
                 }
                 break;
             case R.id.artificialHorizon:
-                telemetry.closeDevice();
+                /*radio1.closeDevice();
                 savingMode = false;
                 Intent intent2 = new Intent(MapsActivity.this, ArtificialHorizonActivity.class);
                 pointDb.close();
-                startActivityForResult(intent2, 2);
+                startActivityForResult(intent2, 2);*/
                 break;
             case R.id.flightPath:
-                telemetry.closeDevice();
+                /*radio1.closeDevice();
                 savingMode =false;
                 Intent intent3 = new Intent(MapsActivity.this, FlightPath.class);
                 intent3.putExtra("WAYPOINT_ID", waypoints);
@@ -270,7 +269,8 @@ public class MapsActivity extends AppCompatActivity {
                 intent3.putExtra("SPEED_ID", speeds);
                 intent3.putExtra("DROPPED_COUNT", droppedCount);
                 pointDb.close();
-                startActivity(intent3);
+                startActivity(intent3);*/
+                break;
             default:
                 break;
         }
@@ -356,23 +356,23 @@ public class MapsActivity extends AppCompatActivity {
                 .rotation((float) plane_rotation));
     }
 
-    public void updatePath(){
+   /* public void updatePath(){
         Bitmap wp = BitmapFactory.decodeResource(getResources(), R.drawable.ic_wp);
         Bitmap wpHalfSize = Bitmap.createScaledBitmap(wp, wp.getWidth() / 2, wp.getHeight() / 2, false);
         wayPoint = mMap.addMarker(new MarkerOptions()
                 .position(planePoint)
                 .icon(BitmapDescriptorFactory.fromBitmap(wpHalfSize))
                 .anchor(0.5f, 0.5f)
-                .title(Double.toString(telemetry.planeAlt)));
+                .title(Double.toString(radio1.planeAlt)));
 
         waypoints.add(planePoint);
-        heights.add(telemetry.planeAlt);
-        speeds.add(telemetry.planeSpeed);
+        heights.add(radio1.planeAlt);
+        //speeds.add(radio1.planeSpeed);
         wayPointCount++;
         if(dropped){
             droppedCount = wayPointCount;
         }
-    };
+    };*/
 
     public void savePoint() {
         pointDb = this.openOrCreateDatabase("PointDatabase", MODE_PRIVATE, null);
@@ -385,26 +385,36 @@ public class MapsActivity extends AppCompatActivity {
     }
 
     public void updateUi () {
+
         TextView textViewDropHeight = (TextView) findViewById(R.id.toolbar_title);
         TextView textViewCurrentHeight = (TextView) findViewById(R.id.toolbar_title1);
-        TextView textViewAirSpeed = (TextView) findViewById(R.id.airspeed_title);
         TextView textViewTimer = (TextView) findViewById(R.id.timerValue);
         TextView textViewDistance = (TextView) findViewById(R.id.distanceValue);
         TextView textViewHeading = (TextView) findViewById(R.id.headingValue);
-        TextView textViewvSpeed = (TextView) findViewById(R.id.vSpeedValue);
+        //TextView textViewvSpeed = (TextView) findViewById(R.id.vSpeedValue);
+        //TextView textViewAirSpeed = (TextView) findViewById(R.id.airspeed_title);
 
-        textViewCurrentHeight.setText(Double.toString(plane_height) + " ft");
-        textViewAirSpeed.setText(Double.toString(plane_speed) + " km/hr");
-        textViewTimer.setText(String.format("%.1f sec", dropAlgorithm.drop_time));
-        textViewvSpeed.setText(String.format("%.1f ft/s", climb_rate));
 
-        double dropDistance = (double) Math.round(dropAlgorithm.drop_dist);
-        textViewDistance.setText(Double.toString(dropDistance) + " m");
-        double dropHeading = (double) Math.round(dropAlgorithm.drop_heading);
-        textViewHeading.setText(Double.toString(dropHeading) + " deg");
+        textViewTimer.setText(String.format("%.2f s", plane_Time));
+        textViewDistance.setText(String.format("%.2f m", plane_distance));
+
+        //improve this: maybe have "LL" and "RR" if the value is greater/less than +-0.5
+        if(plane_rotation < 0)
+            textViewHeading.setText("R");
+        else if(plane_rotation > 0)
+            textViewHeading.setText("L");
+        else
+            textViewHeading.setText("0");
+        textViewCurrentHeight.setText(String.format("%.2f m", plane_height));
+        //textViewAirSpeed.setText(Double.toString(plane_speed) + " km/hr");
+        //textViewvSpeed.setText(String.format("%.1f ft/s", climb_rate));
+        //double dropDistance = (double) Math.round(dropAlgorithm.drop_dist);
+
+        //double dropHeading = (double) Math.round(dropAlgorithm.drop_heading);
 
         if(dropped) {
-            textViewDropHeight.setText(Double.toString(plane_height) + " ft");
+            textViewDropHeight.setText(String.format("$%.2f ft",plane_height));
+
             dropped = false;
         }
     }
@@ -414,36 +424,30 @@ public class MapsActivity extends AppCompatActivity {
       public void run() {
               while (true) {
                   try {
-                      sleep(160);
-                      plane_lat = telemetry.planeLat;
-                      plane_long = telemetry.planeLong;
-                      plane_rotation = telemetry.planeHeading;
-                      plane_speed = telemetry.planeSpeed;
-                      plane_height = telemetry.planeAlt;
+                      sleep(10);
+                      plane_long = radio1.planeLong;
+                      plane_rotation = radio1.planeHeading;
+                      plane_height = radio1.planeAlt;
+                      plane_distance = radio1.planeDistance;
+                      plane_Time = radio1.planeTime;
+                      plane_pitch = radio1.planePitch;
+                      plane_roll = radio1.planeRoll;
                       planePoint = new LatLng(plane_lat, plane_long);
 
-                      Log.v("PLANE", Double.toString(plane_lat) + Double.toString(plane_long));
+                      //Log.v("PLANE", Double.toString(plane_lat) + Double.toString(plane_long));
 
-                      if(targetPoint != null) {
-                          dropAlgorithm.setTarget(targetPoint.latitude, targetPoint.longitude, 0);
-                          Log.v("TARGET", Double.toString(targetPoint.latitude) + Double.toString(targetPoint.longitude));
-                      }
 
-                      long newTime = System.currentTimeMillis();
-                      altitude_filter[altitude_filter_pos++] = plane_height;
-                      if(altitude_filter_pos == altitude_filter_size) altitude_filter_pos = 0;
-                      plane_height = 0;
-                      for (int i = 0; i < altitude_filter_size; i++) plane_height += altitude_filter[i];
-                      plane_height /= altitude_filter_size;
-                      climb_rate = 1000.0 * (plane_height - last_height) / (newTime - lastTime);
-                      lastTime = newTime;
-                      last_height = plane_height;
 
-                      dropAlgorithm.setPosition(plane_lat, plane_long, plane_height);
-                      dropAlgorithm.setSpeed(plane_speed, plane_rotation, climb_rate);
+//                      long newTime = System.currentTimeMillis();
+//                      altitude_filter[altitude_filter_pos++] = plane_height;
+//                      if(altitude_filter_pos == altitude_filter_size) altitude_filter_pos = 0;
+//                      plane_height = 0;
+//                      for (int i = 0; i < altitude_filter_size; i++) plane_height += altitude_filter[i];
+//                      plane_height /= altitude_filter_size;
+//                      climb_rate = 1000.0 * (plane_height - last_height) / (newTime - lastTime);
+//                      lastTime = newTime;
+//                      last_height = plane_height;
 
-                      //dropAlgorithm.calculateWindSpeed(airSpeed, trueHeading);
-                      dropAlgorithm.simulateDrop();
 
                   } catch (InterruptedException e) {
                       e.printStackTrace();
@@ -455,12 +459,12 @@ public class MapsActivity extends AppCompatActivity {
                           updatePlane();
                       }
                   });
-                  handler.postDelayed(new Runnable() {
+                  /*handler.postDelayed(new Runnable() {
                       @Override
                       public void run() {
                           updatePath();
                       }
-                  }, 5000);
+                  }, 5000);*/
           }
        }
     };
