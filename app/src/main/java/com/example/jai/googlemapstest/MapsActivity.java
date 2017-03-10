@@ -125,16 +125,16 @@ public class MapsActivity extends AppCompatActivity {
                 Snackbar.make(view, "Drop/Load Action", Snackbar.LENGTH_LONG)
                 .setAction("Action", null).show();
 
-              /*  if (payload) {
+                if (payload) {
                     fab.setImageDrawable(getResources().getDrawable(R.drawable.ic_drop_icon, global_context.getTheme()));
                     payload = false;
-                    telemetry.dropLoadToggle = true;
+                    //telemetry.dropLoadToggle = true;
                 } else {
                     fab.setImageDrawable(getResources().getDrawable(R.drawable.ic_refresh, global_context.getTheme()));
-                    telemetry.dropLoadToggle = true;
+                    //telemetry.dropLoadToggle = true;
                     dropped = true;
                     payload = true;
-                }*/
+                }
             }
         });
     }
@@ -261,7 +261,7 @@ public class MapsActivity extends AppCompatActivity {
                 startActivityForResult(intent2, 2);*/
                 break;
             case R.id.flightPath:
-                /*radio1.closeDevice();
+                radio1.closeDevice();
                 savingMode =false;
                 Intent intent3 = new Intent(MapsActivity.this, FlightPath.class);
                 intent3.putExtra("WAYPOINT_ID", waypoints);
@@ -269,7 +269,7 @@ public class MapsActivity extends AppCompatActivity {
                 intent3.putExtra("SPEED_ID", speeds);
                 intent3.putExtra("DROPPED_COUNT", droppedCount);
                 pointDb.close();
-                startActivity(intent3);*/
+                startActivity(intent3);
                 break;
             default:
                 break;
@@ -316,6 +316,7 @@ public class MapsActivity extends AppCompatActivity {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 dialog.cancel();
+                dialog.cancel();
             }
         });
 
@@ -356,23 +357,27 @@ public class MapsActivity extends AppCompatActivity {
                 .rotation((float) plane_rotation));
     }
 
-   /* public void updatePath(){
-        Bitmap wp = BitmapFactory.decodeResource(getResources(), R.drawable.ic_wp);
+    public void updatePath(){
+        /*Bitmap wp = BitmapFactory.decodeResource(getResources(), R.drawable.ic_wp);
         Bitmap wpHalfSize = Bitmap.createScaledBitmap(wp, wp.getWidth() / 2, wp.getHeight() / 2, false);
         wayPoint = mMap.addMarker(new MarkerOptions()
                 .position(planePoint)
                 .icon(BitmapDescriptorFactory.fromBitmap(wpHalfSize))
                 .anchor(0.5f, 0.5f)
-                .title(Double.toString(radio1.planeAlt)));
+                .title(Double.toString(radio1.planeAlt)));*/
 
         waypoints.add(planePoint);
-        heights.add(radio1.planeAlt);
-        //speeds.add(radio1.planeSpeed);
+        heights.add(plane_height);
+        speeds.add(plane_speed);
         wayPointCount++;
-        if(dropped){
+
+        //comment this count for actual
+        droppedCount = 50;
+
+        /*if(dropped){
             droppedCount = wayPointCount;
-        }
-    };*/
+        }*/
+    };
 
     public void savePoint() {
         pointDb = this.openOrCreateDatabase("PointDatabase", MODE_PRIVATE, null);
@@ -425,14 +430,24 @@ public class MapsActivity extends AppCompatActivity {
               while (true) {
                   try {
                       sleep(10);
-                      plane_long = radio1.planeLong;
+                      //plane_long = radio1.planeLong;
+                      //plane_lat = radio1.planeLat;
                       plane_rotation = radio1.planeHeading;
-                      plane_height = radio1.planeAlt;
+                      //plane_height = radio1.planeAlt;
                       plane_distance = radio1.planeDistance;
                       plane_Time = radio1.planeTime;
                       plane_pitch = radio1.planePitch;
                       plane_roll = radio1.planeRoll;
+                      //planePoint = new LatLng(plane_lat, plane_long);
+
+                      //testing replay: comment this out and uncomment above portions to make the
+                      //values come from the actual radio information
+                      plane_long = plane_long + 0.0001;
+                      plane_lat = plane_lat + 0.0001;
+                      plane_height = plane_height + 1;
+                      plane_speed = plane_speed + 1;
                       planePoint = new LatLng(plane_lat, plane_long);
+
 
                       //Log.v("PLANE", Double.toString(plane_lat) + Double.toString(plane_long));
 
@@ -451,6 +466,7 @@ public class MapsActivity extends AppCompatActivity {
 
                   } catch (InterruptedException e) {
                       e.printStackTrace();
+
                   }
                   handler.post(new Runnable() {
                       @Override
@@ -459,12 +475,12 @@ public class MapsActivity extends AppCompatActivity {
                           updatePlane();
                       }
                   });
-                  /*handler.postDelayed(new Runnable() {
+                  handler.postDelayed(new Runnable() {
                       @Override
                       public void run() {
                           updatePath();
                       }
-                  }, 5000);*/
+                  }, 100);
           }
        }
     };

@@ -15,5 +15,40 @@
         android:layout_height="match_parent"
         tools:context=".FlightPath" />
 
+    <Button
+        android:layout_width="200dp"
+        android:layout_height="100dp"
+        android:text="PAUSE"
+        android:textSize = "30sp"
+        android:alpha="0.8"
+        android:id="@+id/pause"
+        android:layout_marginBottom="20dp"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:onClick="pausePressed"/>
 
+    <Button
+        android:layout_width="200dp"
+        android:layout_height="100dp"
+        android:text="BACK"
+        android:textSize = "30sp"
+        android:alpha="0.8"
+        android:id="@+id/back"
+        android:layout_marginBottom="20dp"
+        android:layout_marginLeft="200dp"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentLeft = "true"
+        android:onClick="backPressed"/>
+    <Button
+        android:layout_width="200dp"
+        android:layout_height="100dp"
+        android:text="FORWARD"
+        android:textSize = "30sp"
+        android:alpha="0.8"
+        android:id="@+id/forward"
+        android:layout_marginBottom="20dp"
+        android:layout_marginRight="200dp"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentRight="true"
+        android:onClick="forwardPressed"/>
 </RelativeLayout>
