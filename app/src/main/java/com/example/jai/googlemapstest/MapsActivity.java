@@ -126,12 +126,15 @@ public class MapsActivity extends AppCompatActivity {
                 .setAction("Action", null).show();
 
                 if (payload) {
+                    //Toast.makeText(global_context, "Drop1", Toast.LENGTH_SHORT).show();
+                    radio1.sendCommand(payload);
                     fab.setImageDrawable(getResources().getDrawable(R.drawable.ic_drop_icon, global_context.getTheme()));
                     payload = false;
                     //telemetry.dropLoadToggle = true;
                 } else {
                     fab.setImageDrawable(getResources().getDrawable(R.drawable.ic_refresh, global_context.getTheme()));
                     //telemetry.dropLoadToggle = true;
+                    radio1.sendCommand(payload);
                     dropped = true;
                     payload = true;
                 }
@@ -410,7 +413,7 @@ public class MapsActivity extends AppCompatActivity {
             textViewHeading.setText("L");
         else
             textViewHeading.setText("0");
-        textViewCurrentHeight.setText(String.format("%.2f m", plane_height));
+        textViewCurrentHeight.setText(String.format("%.2f ft", plane_height));
         //textViewAirSpeed.setText(Double.toString(plane_speed) + " km/hr");
         //textViewvSpeed.setText(String.format("%.1f ft/s", climb_rate));
         //double dropDistance = (double) Math.round(dropAlgorithm.drop_dist);
@@ -418,7 +421,7 @@ public class MapsActivity extends AppCompatActivity {
         //double dropHeading = (double) Math.round(dropAlgorithm.drop_heading);
 
         if(dropped) {
-            textViewDropHeight.setText(String.format("$%.2f ft",plane_height));
+            textViewDropHeight.setText(String.format("%.2f ft",plane_height));
 
             dropped = false;
         }
@@ -430,23 +433,23 @@ public class MapsActivity extends AppCompatActivity {
               while (true) {
                   try {
                       sleep(10);
-                      //plane_long = radio1.planeLong;
-                      //plane_lat = radio1.planeLat;
+                      plane_long = radio1.planeLong;
+                      plane_lat = radio1.planeLat;
                       plane_rotation = radio1.planeHeading;
-                      //plane_height = radio1.planeAlt;
+                      plane_height = radio1.planeAlt;
                       plane_distance = radio1.planeDistance;
                       plane_Time = radio1.planeTime;
                       plane_pitch = radio1.planePitch;
                       plane_roll = radio1.planeRoll;
-                      //planePoint = new LatLng(plane_lat, plane_long);
+                      planePoint = new LatLng(plane_lat, plane_long);
 
                       //testing replay: comment this out and uncomment above portions to make the
                       //values come from the actual radio information
-                      plane_long = plane_long + 0.0001;
-                      plane_lat = plane_lat + 0.0001;
-                      plane_height = plane_height + 1;
-                      plane_speed = plane_speed + 1;
-                      planePoint = new LatLng(plane_lat, plane_long);
+                      //plane_long = plane_long + 0.0005;
+                      //plane_lat = plane_lat + 0.0005;
+                      //plane_height = (plane_height + 1);
+                      //plane_speed = (plane_speed + 1);
+                      //planePoint = new LatLng(plane_lat, plane_long);
 
 
                       //Log.v("PLANE", Double.toString(plane_lat) + Double.toString(plane_long));

@@ -20,6 +20,8 @@ import com.ftdi.j2xx.FT_Device;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 
 
 public class RadioIO extends FragmentActivity {
@@ -40,14 +42,14 @@ public class RadioIO extends FragmentActivity {
     public static final int DIST = 7;
 
 
-    public double planeLong;
-    public double planeLat;
-    public double planeAlt;
-    public double planeTime;
-    public double planeHeading;
-    public double planePitch;
-    public double planeRoll;
-    public double planeDistance;
+    public double planeLong     = 0.00;
+    public double planeLat      = 0.00;
+    public double planeAlt      = 0.00;
+    public double planeTime     = 0.00;
+    public double planeHeading  = 0.00;
+    public double planePitch    = 0.00;
+    public double planeRoll     = 0.00;
+    public double planeDistance = 0.00;
 
     protected boolean telemetryOpen = false;
     protected String TAG = "TAG";
@@ -59,6 +61,7 @@ public class RadioIO extends FragmentActivity {
 
     Context global_context;
 
+    public int READ_BUFFER_SIZE = 56;
     public static final int READBUF_SIZE  = 256;
     private byte[] buffer  = new byte[READBUF_SIZE];
     protected BufferedWriter bfWriter;
@@ -68,11 +71,29 @@ public class RadioIO extends FragmentActivity {
 
     public boolean mThreadIsStopped = true;     //implemented in runnable, therefore not needed
 
+    // Added by Duncan 2017/03/10
+    public int mReadSize = 0;
+    public byte[] USBBuffer;
+    private final byte[] load  = {(byte) 0};
+    private final byte[] drop  = {(byte) 1};
+    private final byte[] id    = {(byte) 'G'};
+    private final byte[] auto  = {(byte) 1};
+    private final byte[] manu  = {(byte) 0};
+
+    private final byte[] start = {(byte) 2};
+    private final byte[] end   = {(byte) 3};
+
+
+
+
+
+
 
 
     public final byte XON = 0x11;    /* Resume transmission */
     public final byte XOFF = 0x13;    /* Pause transmission */
 
+    // Critical this matches the radio.
     private final int BAUD = 57600;
 
     Handler mHandler = new Handler();
@@ -101,6 +122,13 @@ public class RadioIO extends FragmentActivity {
         } catch (D2xxManager.D2xxException e) {
             Log.e("FTDI_HT", "getInstance fail!!");
         }
+
+        // Duncan
+        // Establish USB buffer
+        //USBBuffer = new byte[READ_BUFFER_SIZE];
+        //super.onCreate(savedInstanceState);
+
+
         filter = new IntentFilter();
         filter.addAction(UsbManager.ACTION_USB_DEVICE_ATTACHED);
         filter.addAction(UsbManager.ACTION_USB_DEVICE_DETACHED);
@@ -122,17 +150,41 @@ public class RadioIO extends FragmentActivity {
                 }
                 synchronized (ftDev) {
 
-                    /*try {
+                    /*
+                    try {
                         //should probably lower this
                         Thread.sleep(500);
                     } catch (Exception e) {
                         Log.e("TEL", "Error trying to sleep");
-                    }*/
-
+                    }
+                    */
 
                     readSize = ftDev.getQueueStatus();
-                    if (readSize > 0) {
+                    if (readSize > 0)
+                    {
+                        boolean message = false;
+                        byte data1[] = new byte[1];
+                        byte data4[] = new byte[4];
 
+                        while (ftDev.getQueueStatus() > 0) {
+                            if (ftDev.read(data1, 1) == 2) {
+                                message = true;
+                                break;
+                            }
+                        }
+
+                        if (message == false)
+                            return;
+
+                        while (ftDev.getQueueStatus() < 6) ;
+                        ftDev.read(data1, 1);
+                        ftDev.read(data4, 4);
+                        //telemetry[ALTITUDE] = ByteBuffer.wrap(data4).order(ByteOrder.LITTLE_ENDIAN).getFloat();
+                        planeAlt = (double) ByteBuffer.wrap(data4).order(ByteOrder.LITTLE_ENDIAN).getFloat();
+                        ftDev.read(data1, 1);
+
+                        //Toast.makeText(global_context, "Message received", Toast.LENGTH_SHORT).show();
+                        /*
                         if (readSize > READBUF_SIZE)
                             readSize = READBUF_SIZE;
 
@@ -141,6 +193,7 @@ public class RadioIO extends FragmentActivity {
                         for(int i=0; i<telemetry.length; i++) {
                             telemetry[i] = (double)buffer[i*8];
                         }
+                        */
 
                        // ByteBuffer byteBuffer = ByteBuffer.wrap(buffer);
 
@@ -152,9 +205,15 @@ public class RadioIO extends FragmentActivity {
                             //telemetry[i] = byteBuffer.getDouble(i * 8);
                             //telemetry[i] = byteBuffer.get(i*8);
 
-
+                        /*
+                        try {
+                            Toast.makeText(global_context, "Message received", Toast.LENGTH_SHORT).show();
                             setTelemetry(telemetry);
-
+                        } catch (Exception e){
+                            Toast.makeText(global_context, "Failed to receive message", Toast.LENGTH_SHORT).show();
+                        }
+                        //setTelemetry(telemetry);
+                        */
                     /*mHandler.post(new Runnable() {
                         @Override
                                 public void run() {
@@ -162,7 +221,11 @@ public class RadioIO extends FragmentActivity {
                                     setTelemetry(telemetry);
 
                         }
-                    });*/
+                    });
+
+                    */
+
+
                     }
                 }
             }
@@ -197,16 +260,18 @@ public class RadioIO extends FragmentActivity {
             setTelemetry(telemetry);
     }*/
 
+
+
     private void setTelemetry(double[] telem) {
 
-        planeLong = telem[LONGITUDE];
-        planeLat = telem[LATITUDE];
-        planeAlt = telem[ALTITUDE];
-        planeTime = telem[TIME];
-        planeHeading = telem[YAW];
-        planePitch = telem[PITCH];
-        planeRoll = telem[ROLL];
-        planeDistance = telem[DIST];
+        planeLong       = telem[LONGITUDE];
+        planeLat        = telem[LATITUDE];
+        planeAlt        = telem[ALTITUDE];
+        planeTime       = telem[TIME];
+        planeHeading    = telem[YAW];
+        planePitch      = telem[PITCH];
+        planeRoll       = telem[ROLL];
+        planeDistance   = telem[DIST];
 
         //currentTime = System.currentTimeMillis() - startTime;   // time
 
@@ -335,7 +400,7 @@ public class RadioIO extends FragmentActivity {
         telemetryOpen = true;
     }
 
- /*   public void payloadToggle(boolean dropLoad)
+    public void sendCommand(boolean dropLoad)
     {
 
         if(ftDev == null){
@@ -357,21 +422,28 @@ public class RadioIO extends FragmentActivity {
 
             ftDev.setLatencyTimer((byte)16);
 
-            //payload toggle command logic
+            // Drop send command.
+            //ftDev.write(start, start.length);       // Start transmission.
+            //ftDev.write(id, id.length);             //
+            //ftDev.write(auto, auto.length);
+
             if (dropLoad) {
                 ftDev.write(drop, drop.length);
                 Log.v(TAG,"DROPPED");
-                payload = false;
+                //Toast.makeText(global_context, "Dropped", Toast.LENGTH_SHORT).show();
             }
             else {
                 ftDev.write(load, load.length);
                 Log.v(TAG, "LOADED");
-                payload = true;
+                //Toast.makeText(global_context, "Loaded", Toast.LENGTH_SHORT).show();
             }
+
+            //ftDev.write(end, end.length);
         }
     }
 
-*/
+
+
 
 
 
